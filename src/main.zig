@@ -4,7 +4,8 @@ const input = @embedFile("./examples/sample_1.tin");
 const Lexer = @import("lexer.zig");
 
 pub fn main() !void {
-    var lexer = Lexer.init(input);
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    var lexer = try Lexer.init(input, arena.allocator());
 
     var token = lexer.scan();
 

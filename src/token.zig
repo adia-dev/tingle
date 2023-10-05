@@ -1,27 +1,11 @@
 const std = @import("std");
 const Self = @This();
 
-pub const KeywordToken = enum {
-    This,
-    Fn,
-    Struct,
-    Let,
-    Var,
-    If,
-    Else,
-    For,
-    While,
-    Return,
-    Unless,
-    And,
-    Or,
-};
-
 pub const TokenType = union(enum) {
     // Keywords
     // These are reserved words in the language.
     // Examples: fn, struct, let, if, else, for, while, return, etc.
-    Keyword: KeywordToken,
+    Keyword: []const u8,
     // Identifiers
     // Tokens representing user-defined names.
     Identifier,
@@ -45,6 +29,12 @@ pub const TokenType = union(enum) {
     Pipe, // |
     Quote, // '
     DoubleQuote, // "
+    LeftParen, // (
+    RightParen, // )
+    LeftBracket, // [
+    RightBracket, // ]
+    LeftBrace, // {
+    RightBrace, // }
     LogicalAnd, // &&
     LogicalOr, // ||
     Increment, // ++

@@ -28,3 +28,8 @@ let result = color |> {
 
 println(result); // Prints: "It's red!"
 
+/*
+
+This is a multi line comment eheh
+
+*/

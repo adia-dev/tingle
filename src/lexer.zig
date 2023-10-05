@@ -10,8 +10,26 @@ line: usize = 1,
 last_line_position: usize = 0,
 input: []const u8,
 
-pub fn init(input: []const u8) Self {
+keywords: std.StringHashMap(void) = undefined,
+
+pub fn init(input: []const u8, allocator: std.mem.Allocator) !Self {
     var lexer = Self{ .input = input };
+
+    lexer.keywords = std.StringHashMap(void).init(allocator);
+
+    try lexer.keywords.put("this", {});
+    try lexer.keywords.put("fn", {});
+    try lexer.keywords.put("struct", {});
+    try lexer.keywords.put("let", {});
+    try lexer.keywords.put("var", {});
+    try lexer.keywords.put("if", {});
+    try lexer.keywords.put("else", {});
+    try lexer.keywords.put("for", {});
+    try lexer.keywords.put("while", {});
+    try lexer.keywords.put("eturn", {});
+    try lexer.keywords.put("unless", {});
+    try lexer.keywords.put("and", {});
+    try lexer.keywords.put("or", {});
 
     lexer.advance();
 
@@ -27,8 +45,13 @@ pub fn scan(self: *Self) Token {
         'a'...'z', 'A'...'Z' => {
             const identifier = self.scan_identifier();
 
-            token.t = .Identifier;
-            token.literal = identifier;
+            if (self.keywords.contains(identifier)) {
+                token.t = .{ .Keyword = identifier };
+                token.literal = identifier;
+            } else {
+                token.t = .Identifier;
+                token.literal = identifier;
+            }
         },
         '0'...'9' => {
             const number = self.scan_number();
@@ -55,8 +78,26 @@ pub fn scan(self: *Self) Token {
             switch (self.peek()) {
                 '/' => {
                     self.advance();
+                    self.advance();
+
                     const comment = self.scan_single_line_comment();
                     token.t = .{ .CommentSingleLine = comment };
+                    token.literal = comment;
+
+                    return token;
+                },
+                '*' => {
+                    self.advance();
+                    self.advance();
+
+                    const comment = self.scan_multi_line_comment();
+                    token.t = .{ .CommentMultiLine = comment };
+                    token.literal = comment;
+
+                    self.advance();
+                    self.advance();
+
+                    return token;
                 },
                 else => {
                     token.t = .ForwardSlash;
@@ -95,6 +136,30 @@ pub fn scan(self: *Self) Token {
         '"' => {
             token.t = .DoubleQuote;
             token.literal = "\"";
+        },
+        '(' => {
+            token.t = .LeftParen;
+            token.literal = "(";
+        },
+        ')' => {
+            token.t = .RightParen;
+            token.literal = ")";
+        },
+        '[' => {
+            token.t = .LeftBracket;
+            token.literal = "[";
+        },
+        ']' => {
+            token.t = .RightBracket;
+            token.literal = "]";
+        },
+        '{' => {
+            token.t = .LeftBrace;
+            token.literal = "{";
+        },
+        '}' => {
+            token.t = .RightBrace;
+            token.literal = "}";
         },
         '=' => {
             token.t = .Equal;
@@ -173,6 +238,49 @@ fn scan_number(self: *Self) []const u8 {
     return self.input[position..self.position];
 }
 
+fn scan_single_line_comment(self: *Self) []const u8 {
+    const position = self.position;
+
+    while (true) {
+        switch (self.c) {
+            '\r', '\n' => {
+                break;
+            },
+            else => {
+                self.advance();
+            },
+        }
+    }
+
+    return self.input[position..self.position];
+}
+
+fn scan_multi_line_comment(self: *Self) []const u8 {
+    const position = self.position;
+
+    while (true) : (self.advance()) {
+        if (self.c == '*' and self.peek() == '/') {
+            break;
+        }
+    }
+
+    return self.input[position..self.position];
+}
+
+fn scan_string_literal(self: *Self) []const u8 {
+    const position = self.position;
+
+    while (true) : (self.advance()) {
+        if (self.c != '\\' and self.peek() == '"') {
+            break;
+        }
+    }
+
+    self.advance();
+
+    return self.input[position..self.position];
+}
+
 fn eat_whitespace(self: *Self) void {
     while (true) : (self.advance()) {
         switch (self.c) {
@@ -189,23 +297,6 @@ fn eat_whitespace(self: *Self) void {
         }
     }
 }
-
-fn scan_single_line_comment(self: *Self) []const u8 {
-    const position = self.position;
-
-    while (self.c != 0 or self.c != '\n' or self.c != '\r') : (self.advance()) {}
-
-    return self.input[position..self.position];
-}
-
-fn scan_multi_line_comment(self: *Self) []const u8 {
-    const position = self.position;
-
-    while (self.c != 0 or (self.c != '*' and self.peek() != '/')) : (self.advance()) {}
-
-    return self.input[position..self.position];
-}
-
 fn eat_newspace(self: *Self) void {
     while (true) : (self.advance()) {
         switch (self.c) {
