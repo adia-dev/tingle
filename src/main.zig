@@ -1,6 +1,5 @@
 const std = @import("std");
 const input = @embedFile("./examples/sample_1.tin");
-
 const Lexer = @import("./lexer/lexer.zig");
 
 pub fn main() !void {
