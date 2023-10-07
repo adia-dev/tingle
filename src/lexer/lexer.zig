@@ -1,6 +1,6 @@
 const std = @import("std");
 const Self = @This();
-const Token = @import("token.zig");
+const Token = @import("../token/token.zig");
 const TokenType = Token.TokenType;
 
 position: usize = 0,

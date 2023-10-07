@@ -1,7 +1,7 @@
 const std = @import("std");
 const input = @embedFile("./examples/sample_1.tin");
 
-const Lexer = @import("lexer.zig");
+const Lexer = @import("./lexer/lexer.zig");
 
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
