@@ -12,3 +12,7 @@ pub fn main() !void {
         token.print();
     }
 }
+
+test {
+    @import("std").testing.refAllDecls(@This());
+}
