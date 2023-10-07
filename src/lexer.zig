@@ -26,10 +26,14 @@ pub fn init(input: []const u8, allocator: std.mem.Allocator) !Self {
     try lexer.keywords.put("else", {});
     try lexer.keywords.put("for", {});
     try lexer.keywords.put("while", {});
-    try lexer.keywords.put("eturn", {});
+    try lexer.keywords.put("return", {});
     try lexer.keywords.put("unless", {});
     try lexer.keywords.put("and", {});
     try lexer.keywords.put("or", {});
+    try lexer.keywords.put("defer", {});
+    try lexer.keywords.put("match", {});
+    try lexer.keywords.put("true", {});
+    try lexer.keywords.put("false", {});
 
     lexer.advance();
 
@@ -39,7 +43,7 @@ pub fn init(input: []const u8, allocator: std.mem.Allocator) !Self {
 pub fn scan(self: *Self) Token {
     self.eat_whitespace();
 
-    var token = Token.init(TokenType.Illegal, "", .{ .line = self.line, .column = self.position - self.last_line_position });
+    var token = Token.init(TokenType.Illegal, .{ .line = self.line, .column = self.position - self.last_line_position });
 
     switch (self.c) {
         'a'...'z', 'A'...'Z' => {
@@ -47,32 +51,44 @@ pub fn scan(self: *Self) Token {
 
             if (self.keywords.contains(identifier)) {
                 token.t = .{ .Keyword = identifier };
-                token.literal = identifier;
             } else {
-                token.t = .Identifier;
-                token.literal = identifier;
+                token.t = .{ .Identifier = identifier };
             }
+
+            return token;
         },
         '0'...'9' => {
             const number = self.scan_number();
 
-            token.t = .LiteralInt;
-            token.literal = number;
+            token.t = .{ .Number = number };
+            return token;
         },
         0 => {
             token.t = .Eof;
         },
         '+' => {
+            if (self.scan_expected_compound_token(&token, "=", .PlusEqual)) {
+                return token;
+            } else if (self.scan_expected_compound_token(&token, "+", .PlusPlus)) {
+                return token;
+            }
             token.t = .Plus;
-            token.literal = "+";
         },
         '-' => {
+            if (self.scan_expected_compound_token(&token, "=", .MinusEqual)) {
+                return token;
+            } else if (self.scan_expected_compound_token(&token, "-", .MinusMinus)) {
+                return token;
+            }
             token.t = .Minus;
-            token.literal = "-";
         },
         '*' => {
+            if (self.scan_expected_compound_token(&token, "=", .StarEqual)) {
+                return token;
+            } else if (self.scan_expected_compound_token(&token, "*", .StarStar)) {
+                return token;
+            }
             token.t = .Star;
-            token.literal = "*";
         },
         '/' => {
             switch (self.peek()) {
@@ -82,7 +98,6 @@ pub fn scan(self: *Self) Token {
 
                     const comment = self.scan_single_line_comment();
                     token.t = .{ .CommentSingleLine = comment };
-                    token.literal = comment;
 
                     return token;
                 },
@@ -92,7 +107,6 @@ pub fn scan(self: *Self) Token {
 
                     const comment = self.scan_multi_line_comment();
                     token.t = .{ .CommentMultiLine = comment };
-                    token.literal = comment;
 
                     self.advance();
                     self.advance();
@@ -101,117 +115,132 @@ pub fn scan(self: *Self) Token {
                 },
                 else => {
                     token.t = .ForwardSlash;
-                    token.literal = "/";
                 },
             }
         },
         '\\' => {
             token.t = .BackSlash;
-            token.literal = "\\";
         },
         '%' => {
+            if (self.scan_expected_compound_token(&token, "=", .PercentEqual)) {
+                return token;
+            }
             token.t = .Percent;
-            token.literal = "%";
         },
         '^' => {
+            if (self.scan_expected_compound_token(&token, "=", .CaretEqual)) {
+                return token;
+            }
             token.t = .Caret;
-            token.literal = "^";
         },
         '!' => {
+            if (self.scan_expected_compound_token(&token, "=", .NotEqual)) {
+                return token;
+            }
             token.t = .Bang;
-            token.literal = "!";
         },
         '&' => {
+            if (self.scan_expected_compound_token(&token, "&", .LogicalAnd)) {
+                return token;
+            }
             token.t = .Ampersand;
-            token.literal = "&";
         },
         '|' => {
+            if (self.scan_expected_compound_token(&token, "|", .LogicalOr)) {
+                return token;
+            } else if (self.scan_expected_compound_token(&token, ">", .Piped)) {
+                return token;
+            }
             token.t = .Pipe;
-            token.literal = "|";
         },
         '\'' => {
             token.t = .Quote;
-            token.literal = "'";
         },
         '"' => {
             token.t = .DoubleQuote;
-            token.literal = "\"";
         },
         '(' => {
             token.t = .LeftParen;
-            token.literal = "(";
         },
         ')' => {
             token.t = .RightParen;
-            token.literal = ")";
         },
         '[' => {
             token.t = .LeftBracket;
-            token.literal = "[";
         },
         ']' => {
             token.t = .RightBracket;
-            token.literal = "]";
         },
         '{' => {
             token.t = .LeftBrace;
-            token.literal = "{";
         },
         '}' => {
             token.t = .RightBrace;
-            token.literal = "}";
         },
         '=' => {
+            if (self.scan_expected_compound_token(&token, "=", .EqualEqual)) {
+                return token;
+            }
             token.t = .Equal;
-            token.literal = "=";
         },
         '>' => {
+            if (self.scan_expected_compound_token(&token, "=", .GreaterEqual)) {
+                return token;
+            } else if (self.scan_expected_compound_token(&token, ">", .ShiftRight)) {
+                return token;
+            }
             token.t = .GreaterThan;
-            token.literal = ">";
         },
         '<' => {
+            if (self.scan_expected_compound_token(&token, "=", .LessEqual)) {
+                return token;
+            } else if (self.scan_expected_compound_token(&token, "<", .ShiftLeft)) {
+                return token;
+            }
             token.t = .LessThan;
-            token.literal = "<";
         },
         '@' => {
             token.t = .At;
-            token.literal = "@";
         },
         '_' => {
             token.t = .Underscore;
-            token.literal = "_";
         },
         '.' => {
+            if (self.scan_expected_compound_token(&token, "..", .DotDotDot)) {
+                return token;
+            } else if (self.scan_expected_compound_token(&token, ".", .DotDot)) {
+                return token;
+            }
             token.t = .Dot;
-            token.literal = ".";
         },
         ',' => {
             token.t = .Comma;
-            token.literal = ",";
         },
         ';' => {
             token.t = .SemiColon;
-            token.literal = ";";
         },
         ':' => {
+            if (self.scan_expected_compound_token(&token, ":", .PathSep)) {
+                return token;
+            }
             token.t = .Colon;
-            token.literal = ":";
         },
         '#' => {
             token.t = .Pound;
-            token.literal = "#";
         },
         '$' => {
             token.t = .Dollar;
-            token.literal = "$";
         },
         '?' => {
+            if (self.scan_expected_compound_token(&token, ":", .Elvis)) {
+                return token;
+            } else if (self.scan_expected_compound_token(&token, "?", .NullCoalesce)) {
+                return token;
+            }
             token.t = .Question;
-            token.literal = "?";
         },
         '~' => {
             token.t = .Tilde;
-            token.literal = "~";
         },
         else => {},
     }
@@ -328,4 +357,25 @@ fn peek(self: *Self) u8 {
     } else {
         return self.input[self.next_position];
     }
+}
+
+fn scan_expected_compound_token(self: *Self, token: *Token, expected_literal: []const u8, expected_type: TokenType) bool {
+    const position = self.position;
+    const next_position = self.next_position;
+
+    for (0..expected_literal.len) |i| {
+        if (self.peek() != expected_literal[i]) {
+            self.*.position = position;
+            self.*.next_position = next_position;
+            return false;
+        }
+
+        self.advance();
+    }
+
+    self.advance();
+
+    token.*.t = expected_type;
+
+    return true;
 }
