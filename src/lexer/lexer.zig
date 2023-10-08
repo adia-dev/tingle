@@ -40,6 +40,10 @@ pub fn init(input: []const u8, allocator: std.mem.Allocator) !Self {
     return lexer;
 }
 
+pub fn deinit(self: *Self) void {
+    self.keywords.deinit();
+}
+
 pub fn scan(self: *Self) Token {
     self.eat_whitespace();
 
