@@ -104,8 +104,8 @@ pub fn init(t: TokenType, options: TokenOptions) Self {
     };
 }
 
-pub fn print(self: *Self) void {
-    std.debug.print(
+pub fn print(self: *Self) !void {
+    _ = try std.io.getStdOut().writer().print(
         \\ Token:
         \\     - type: {s}
         \\     - literal: {s}
