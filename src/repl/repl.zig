@@ -37,7 +37,7 @@ pub fn start(self: *Self) !void {
 fn read(self: *Self) !void {
     _ = try std.io.getStdOut().writer().print("Tingle({d})> ", .{self.i});
     self.*.input = c.readline("");
-
+    _ = c.add_history(self.*.input);
     self.*.i += 1;
 }
 
