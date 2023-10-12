@@ -1,11 +1,34 @@
 const std = @import("std");
 const Self = @This();
 
+pub const Keyword = enum {
+    This,
+    Fn,
+    Struct,
+    Enum,
+    Union,
+    Let,
+    Const,
+    Var,
+    If,
+    Else,
+    Unless,
+    For,
+    While,
+    Return,
+    And,
+    Or,
+    Defer,
+    Match,
+    True,
+    False,
+};
+
 pub const TokenType = union(enum) {
     // Keywords
     // These are reserved words in the language.
     // Examples: fn, struct, let, if, else, for, while, return, etc.
-    Keyword: []const u8,
+    Keyword: Keyword,
     // Identifiers
     // Tokens representing user-defined names.
     Identifier: []const u8,
@@ -122,7 +145,7 @@ pub fn print(self: *Self) !void {
 
 pub fn literal(self: *Self) []const u8 {
     switch (self.t) {
-        .Keyword => |kw| return kw,
+        .Keyword => |*kw| return keyword_literal(kw),
         .Identifier => |ident| return ident,
         .Number => |number| return number,
         .LiteralString => |string| return string,
@@ -192,5 +215,30 @@ pub fn literal(self: *Self) []const u8 {
         .Tilde => return "~",
         .Eof => return "End Of File",
         .Illegal => return "Illegal",
+    }
+}
+
+pub fn keyword_literal(keyword: *Keyword) []const u8 {
+    switch (keyword.*) {
+        .This => return "this",
+        .Fn => return "fn",
+        .Struct => return "struct",
+        .Enum => return "enum",
+        .Union => return "union",
+        .Let => return "let",
+        .Const => return "const",
+        .Var => return "var",
+        .If => return "if",
+        .Else => return "else",
+        .Unless => return "unless",
+        .For => return "for",
+        .While => return "while",
+        .Return => return "return",
+        .And => return "and",
+        .Or => return "or",
+        .Defer => return "defer",
+        .Match => return "match",
+        .True => return "true",
+        .False => return "false",
     }
 }
