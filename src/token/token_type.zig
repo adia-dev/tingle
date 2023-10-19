@@ -4,8 +4,9 @@ pub const TokenType = union(enum) {
     illegal, // illegal or Unsupported token
     eof, // End of file
     identifier: []const u8, // e.g: name, age, i, ...
-    keyword: Keyword, // e.g: name, age, i, ...
-    number: Number, // e.g: name, age, i, ...
+    string: []const u8, // e.g: "Abdoulaye Dia wrote\n this code.", "eheh", "", ...
+    keyword: Keyword, // e.g: var, struct, defer, ...
+    number: []const u8, // e.g: 1, 999_999, 1.0, ...
 
     // Punctuation
     plus, // +
@@ -24,12 +25,22 @@ pub const TokenType = union(enum) {
     underscore, // _
     dot, // .
     comma, // ,
-    semi, // ;
+    semicolon, // ;
     colon, // :
     pound, // #
     dollar, // $
     question, // ?
     tilde, // ~
+
+    lparen, // (
+    rparen, // )
+    lbrace, // {
+    rbrace, // }
+    lbrack, // [
+    rbrack, // ]
+
+    quote, // '
+    dquote, // "
 
     bitAnd, // &&
     bitOr, // ||
@@ -59,26 +70,72 @@ pub const TokenType = union(enum) {
 
     pub fn to_string(self: TokenType) []const u8 {
         switch (self) {
+            .illegal, .eof => return "",
+
             .keyword => |case| return case.to_string(),
-            .number => |case| return case.to_string(),
+            .number => |number| return number,
+            .string => |string| return string,
             .identifier => |ident| return ident,
-            else => |case| return @tagName(case),
+
+            .plus => return "+",
+            .minus => return "-",
+            .star => return "*",
+            .forwardSlash => return "/",
+            .percent => return "%",
+            .caret => return "^",
+            .bang => return "!",
+            .ampersand => return "&",
+            .pipe => return "|",
+            .eq => return "=",
+            .gt => return ">",
+            .lt => return "<",
+            .at => return "@",
+            .underscore => return "_",
+            .dot => return ".",
+            .comma => return ",",
+            .semicolon => return ";",
+            .colon => return ":",
+            .pound => return "#",
+            .dollar => return "$",
+            .question => return "?",
+            .tilde => return "~",
+
+            .lparen => return "(",
+            .rparen => return ")",
+            .lbrace => return "{",
+            .rbrace => return "}",
+            .lbrack => return "[",
+            .rbrack => return "]",
+
+            .quote => return "'",
+            .dquote => return "\"",
+
+            .bitAnd => return "&&",
+            .bitOr => return "||",
+            .shiftLeft => return "<<",
+            .shiftRight => return ">>",
+            .piped => return "|>",
+            .plusEq => return "+=",
+            .minusEq => return "-=",
+            .starEq => return "*=",
+            .forwardSlashEq => return "/=",
+            .percentEq => return "%=",
+            .caretEq => return "^=",
+            .andEq => return "&=",
+            .orEq => return "|=",
+            .shiftLeftEq => return "<<=",
+            .shiftRightEq => return ">>=",
+            .equal => return "==",
+            .neq => return "!=",
+            .geq => return ">=",
+            .leq => return "<=",
+            .dotDot => return "..",
+            .dotDotDot => return "...",
+            .dotDotEq => return "..=",
+            .pathSep => return "::",
+            .rArrow => return "->",
+            .fatArrow => return "=>",
         }
-    }
-};
-
-pub const Number = union(enum) {
-    char: u8,
-    signed_char: i8,
-    int: i32,
-    unsigned_int: u32,
-    short: i16,
-    unsigned_short: u16,
-    long: i64,
-    unsigned_long: u64,
-
-    pub fn to_string(self: Number) []const u8 {
-        return @tagName(self);
     }
 };
 
@@ -105,6 +162,7 @@ pub const Keyword = enum {
     mod,
     move,
     mut,
+    null,
     @"pub",
     ref,
     @"return",
@@ -117,6 +175,7 @@ pub const Keyword = enum {
     type,
     unsafe,
     use,
+    @"var",
     where,
     @"while",
 
