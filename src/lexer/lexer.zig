@@ -28,44 +28,106 @@ pub fn scan(self: *Self) !Token {
             token.type = .eof;
         },
         '+' => {
-            if (self.scan_compound_token("=")) {
+            if (self.scan_compound_token("+")) {
+                token.type = .plusPlus;
+            } else if (self.scan_compound_token("=")) {
                 token.type = .plusEq;
             } else {
                 token.type = .plus;
             }
         },
         '-' => {
-            token.type = .minus;
+            if (self.scan_compound_token("-")) {
+                token.type = .minusMinus;
+            } else if (self.scan_compound_token(">")) {
+                token.type = .rArrow;
+            } else if (self.scan_compound_token("=")) {
+                token.type = .minusEq;
+            } else {
+                token.type = .minus;
+            }
         },
         '*' => {
-            token.type = .star;
+            if (self.scan_compound_token("*")) {
+                token.type = .starStar;
+            } else if (self.scan_compound_token("=")) {
+                token.type = .starEq;
+            } else {
+                token.type = .star;
+            }
         },
         '/' => {
-            token.type = .forwardSlash;
+            if (self.scan_compound_token("/")) {
+                token.type = .fSlashFSlash;
+            } else if (self.scan_compound_token("=")) {
+                token.type = .fSlashEq;
+            } else {
+                token.type = .fSlash;
+            }
         },
         '%' => {
             token.type = .percent;
         },
         '^' => {
-            token.type = .caret;
+            if (self.scan_compound_token("=")) {
+                token.type = .caretEq;
+            } else {
+                token.type = .caret;
+            }
         },
         '!' => {
-            token.type = .bang;
+            if (self.scan_compound_token("=")) {
+                token.type = .neq;
+            } else {
+                token.type = .bang;
+            }
         },
         '&' => {
-            token.type = .ampersand;
+            if (self.scan_compound_token("&")) {
+                token.type = .bitAnd;
+            } else {
+                token.type = .ampersand;
+            }
         },
         '|' => {
-            token.type = .pipe;
+            if (self.scan_compound_token(">")) {
+                token.type = .piped;
+            } else if (self.scan_compound_token("|")) {
+                token.type = .bitOr;
+            } else {
+                token.type = .pipe;
+            }
         },
         '=' => {
-            token.type = .eq;
+            if (self.scan_compound_token("=")) {
+                token.type = .eqEq;
+            } else if (self.scan_compound_token(">")) {
+                token.type = .fatArrow;
+            } else {
+                token.type = .eq;
+            }
         },
         '>' => {
-            token.type = .gt;
+            if (self.scan_compound_token(">=")) {
+                token.type = .shiftRightEq;
+            } else if (self.scan_compound_token("=")) {
+                token.type = .geq;
+            } else if (self.scan_compound_token(">")) {
+                token.type = .shiftRight;
+            } else {
+                token.type = .gt;
+            }
         },
         '<' => {
-            token.type = .lt;
+            if (self.scan_compound_token("<=")) {
+                token.type = .shiftLeftEq;
+            } else if (self.scan_compound_token("<")) {
+                token.type = .leq;
+            } else if (self.scan_compound_token("<")) {
+                token.type = .shiftLeft;
+            } else {
+                token.type = .lt;
+            }
         },
         '@' => {
             token.type = .at;
@@ -76,6 +138,8 @@ pub fn scan(self: *Self) !Token {
         '.' => {
             if (self.scan_compound_token("..")) {
                 token.type = .dotDotDot;
+            } else if (self.scan_compound_token(".=")) {
+                token.type = .dotDotEq;
             } else if (self.scan_compound_token(".")) {
                 token.type = .dotDot;
             } else {

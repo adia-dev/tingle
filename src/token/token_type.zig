@@ -12,7 +12,7 @@ pub const TokenType = union(enum) {
     plus, // +
     minus, // -
     star, // *
-    forwardSlash, // /
+    fSlash, // /
     percent, // %
     caret, // ^
     bang, // !
@@ -50,17 +50,21 @@ pub const TokenType = union(enum) {
     plusEq, // +=
     minusEq, // -=
     starEq, // *=
-    forwardSlashEq, // /=
+    fSlashEq, // /=
     percentEq, // %=
     caretEq, // ^=
     andEq, // &=
     orEq, // |=
     shiftLeftEq, // <<=
     shiftRightEq, // >>=
-    equal, // ==
+    eqEq, // ==
     neq, // !=
     geq, // >=
     leq, // <=
+    plusPlus, // ++
+    minusMinus, // --
+    starStar, // **
+    fSlashFSlash, // //
     dotDot, // ..
     dotDotDot, // ...
     dotDotEq, // ..=
@@ -80,7 +84,7 @@ pub const TokenType = union(enum) {
             .plus => return "+",
             .minus => return "-",
             .star => return "*",
-            .forwardSlash => return "/",
+            .fSlash => return "/",
             .percent => return "%",
             .caret => return "^",
             .bang => return "!",
@@ -118,17 +122,22 @@ pub const TokenType = union(enum) {
             .plusEq => return "+=",
             .minusEq => return "-=",
             .starEq => return "*=",
-            .forwardSlashEq => return "/=",
+            .fSlashEq => return "/=",
             .percentEq => return "%=",
             .caretEq => return "^=",
             .andEq => return "&=",
             .orEq => return "|=",
             .shiftLeftEq => return "<<=",
             .shiftRightEq => return ">>=",
-            .equal => return "==",
+            .eqEq => return "==",
             .neq => return "!=",
             .geq => return ">=",
             .leq => return "<=",
+
+            .plusPlus => return "++",
+            .minusMinus => return "--",
+            .starStar => return "**",
+            .fSlashFSlash => return "//",
             .dotDot => return "..",
             .dotDotDot => return "...",
             .dotDotEq => return "..=",
